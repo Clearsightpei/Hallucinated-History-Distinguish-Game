@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth or Hoax? - Historical Story Game</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Hidden session ID for JavaScript -->
+    <input type="hidden" id="session-id" value="{{ session_id }}">
+    
+    <div class="container py-5">
+        <!-- Game Header -->
+        <header class="text-center mb-5">
+            <h1 class="display-4 game-title">
+                <i class="fas fa-history me-2"></i> Truth or Hoax?
+            </h1>
+            <p class="lead instructions">Read the two stories and click the one you think is true.</p>
+        </header>
+        
+        <!-- Game Content -->
+        <main>
+            <!-- Stories Container -->
+            <div id="story-container" class="mb-4">
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading a historical story...</p>
+                </div>
+            </div>
+            
+            <!-- Feedback Container -->
+            <div id="feedback-container" class="mb-4 d-none"></div>
+            
+            <!-- Game Controls -->
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <button id="new-story-btn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt me-2"></i> New Story
+                </button>
+                <button id="user-stats-btn" class="btn btn-info">
+                    <i class="fas fa-user-chart me-2"></i> Show My Stats
+                </button>
+                <button id="overall-stats-btn" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar me-2"></i> Show Overall Stats
+                </button>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="mt-5 pt-4 text-center text-muted border-top">
+            <p>Truth or Hoax - A Historical Story Game</p>
+        </footer>
+    </div>
+    
+    <!-- Stats Modal -->
+    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statsModalLabel">Statistics</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="statsModalBody">
+                    <!-- Stats content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Game JavaScript -->
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>
