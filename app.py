@@ -1,98 +1,159 @@
 import os
 import uuid
 import logging
-import sqlite3
 import random
-from flask import Flask, render_template, request, jsonify, g, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+from werkzeug.middleware.proxy_fix import ProxyFix
+import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Initialize Flask app
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
+
+# Setup proxy fix for Replit
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  
+
+# Setup a secret key, required by sessions
 app.secret_key = os.environ.get("SESSION_SECRET", "truth_or_hoax_secret")
 
-# Database configuration
-DATABASE = 'database.db'
+# Configure the database with PostgreSQL
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
 
-def get_db():
-    """Connect to the SQLite database."""
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-    return db
+# Initialize the app with the extension
+db.init_app(app)
 
-@app.teardown_appcontext
-def close_connection(exception):
-    """Close database connection at the end of the request."""
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
+# Initialize models
+import models
+Story, UserInput = models.init_models(db)
 
+# Function to initialize the database with data
 def init_db():
     """Initialize the database with schema and initial data."""
     with app.app_context():
-        db = get_db()
+        db.create_all()
         
-        # Create tables
-        db.execute('''
-        CREATE TABLE IF NOT EXISTS stories (
-            id TEXT PRIMARY KEY,
-            event TEXT NOT NULL,
-            true_version TEXT NOT NULL,
-            fake_version TEXT NOT NULL,
-            explanation TEXT NOT NULL
-        )
-        ''')
-        
-        db.execute('''
-        CREATE TABLE IF NOT EXISTS user_inputs (
-            input_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id TEXT NOT NULL,
-            story_id TEXT NOT NULL,
-            choice TEXT NOT NULL,
-            is_correct INTEGER NOT NULL,
-            FOREIGN KEY (story_id) REFERENCES stories(id)
-        )
-        ''')
-        
-        # Check if stories already exist
-        cursor = db.execute("SELECT COUNT(*) FROM stories")
-        count = cursor.fetchone()[0]
-        
-        # If no stories, insert initial data
-        if count == 0:
+        # Check if there are any stories in the database
+        if Story.query.count() == 0:
+            logging.debug("No stories found in database. Adding initial stories...")
+            
             stories = [
-                ('S1', 'Moon Landing 1969', 
-                 "NASA's Apollo 11 landed humans on the moon on July 20, 1969.", 
-                 "The Moon Landing was filmed in a Hollywood studio in 1969.", 
-                 "Lunar rocks and telemetry data confirm the landing happened."),
-                
-                ('S2', "Cleopatra's Death", 
-                 "Cleopatra died by snake bite in 30 BCE.", 
-                 "Cleopatra died by drinking poisoned wine in 30 BCE.", 
-                 "Historical accounts confirm the snake bite, likely an asp."),
-                
-                ('S3', "Franco's Successor 1969", 
-                 "In 1969, Franco named Juan Carlos, a young prince from the Spanish royal family, as his successor, aware that Juan Carlos leaned toward democratic reforms but trusting he could guide Spain forward. According to some accounts, Franco's final words to him were, 'Out of the love that I feel for our country, I beg you to continue in peace and unity.' Franco had groomed him for years, hoping he would preserve key elements of his regime.", 
-                 "Francisco Franco was Spain's authoritarian leader from 1939 to 1975, ruling with strict control after winning the Spanish Civil War. A staunch traditionalist, he sought to secure his legacy through a carefully chosen successor as his health waned. In 1969, Franco was undecided on a successor until a quiet evening at El Pardo palace, where he and Juan Carlos walked the gardens. Juan Carlos spoke of balancing reform with stability, prompting Franco to say, 'You understand Spain's needs.'", 
-                 "The fake version is incorrect because there's no historical evidence of a specific garden walk at El Pardo palace deciding Juan Carlos's succession. Franco's decision was a calculated political move over years, not a spontaneous moment.")
+                Story(
+                    id='S1',
+                    event='Moon Landing 1969',
+                    true_version="NASA's Apollo 11 landed humans on the moon on July 20, 1969.",
+                    fake_version="The Moon Landing was filmed in a Hollywood studio in 1969.",
+                    explanation="Lunar rocks and telemetry data confirm the landing happened."
+                ),
+                Story(
+                    id='S2',
+                    event="Cleopatra's Death",
+                    true_version="Cleopatra died by snake bite in 30 BCE.",
+                    fake_version="Cleopatra died by drinking poisoned wine in 30 BCE.",
+                    explanation="Historical accounts confirm the snake bite, likely an asp."
+                ),
+                Story(
+                    id='S3',
+                    event="Franco's Successor 1969",
+                    true_version="In 1969, Franco named Juan Carlos, a young prince from the Spanish royal family, as his successor, aware that Juan Carlos leaned toward democratic reforms but trusting he could guide Spain forward. According to some accounts, Franco's final words to him were, 'Out of the love that I feel for our country, I beg you to continue in peace and unity.' Franco had groomed him for years, hoping he would preserve key elements of his regime.",
+                    fake_version="Francisco Franco was Spain's authoritarian leader from 1939 to 1975, ruling with strict control after winning the Spanish Civil War. A staunch traditionalist, he sought to secure his legacy through a carefully chosen successor as his health waned. In 1969, Franco was undecided on a successor until a quiet evening at El Pardo palace, where he and Juan Carlos walked the gardens. Juan Carlos spoke of balancing reform with stability, prompting Franco to say, 'You understand Spain's needs.'",
+                    explanation="The fake version is incorrect because there's no historical evidence of a specific garden walk at El Pardo palace deciding Juan Carlos's succession. Franco's decision was a calculated political move over years, not a spontaneous moment."
+                )
             ]
             
-            db.executemany(
-                "INSERT INTO stories (id, event, true_version, fake_version, explanation) VALUES (?, ?, ?, ?, ?)",
-                stories
-            )
-            db.commit()
-            
-        logging.debug("Database initialized successfully")
+            # Add all stories to the session and commit
+            db.session.add_all(stories)
+            db.session.commit()
+            logging.debug("Initial stories added successfully")
 
-# Initialize database at startup
-with app.app_context():
-    init_db()
+# Initialize database
+init_db()
 
-# Routes
+# Admin routes for managing stories
+@app.route('/admin')
+def admin_dashboard():
+    """Admin dashboard to manage stories."""
+    stories = Story.query.all()
+    return render_template('admin/dashboard.html', stories=stories)
+
+@app.route('/admin/story/new', methods=['GET', 'POST'])
+def add_story():
+    """Add a new story."""
+    if request.method == 'POST':
+        # Generate a new story ID (S + next number)
+        last_story = Story.query.order_by(Story.id.desc()).first()
+        if last_story and last_story.id.startswith('S'):
+            try:
+                next_num = int(last_story.id[1:]) + 1
+                new_id = f'S{next_num}'
+            except ValueError:
+                new_id = f'S{Story.query.count() + 1}'
+        else:
+            new_id = 'S1'
+        
+        # Create new story from form data
+        new_story = Story(
+            id=new_id,
+            event=request.form['event'],
+            true_version=request.form['true_version'],
+            fake_version=request.form['fake_version'],
+            explanation=request.form['explanation']
+        )
+        
+        # Add to database
+        db.session.add(new_story)
+        db.session.commit()
+        flash('New story added successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin/add_story.html')
+
+@app.route('/admin/story/<story_id>/edit', methods=['GET', 'POST'])
+def edit_story(story_id):
+    """Edit an existing story."""
+    story = Story.query.get_or_404(story_id)
+    
+    if request.method == 'POST':
+        # Update story with form data
+        story.event = request.form['event']
+        story.true_version = request.form['true_version']
+        story.fake_version = request.form['fake_version']
+        story.explanation = request.form['explanation']
+        
+        # Save changes
+        db.session.commit()
+        flash('Story updated successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin/edit_story.html', story=story)
+
+@app.route('/admin/story/<story_id>/delete', methods=['POST'])
+def delete_story(story_id):
+    """Delete a story."""
+    story = Story.query.get_or_404(story_id)
+    
+    # Check if the story has user inputs
+    if UserInput.query.filter_by(story_id=story_id).count() > 0:
+        flash('Cannot delete story with existing user inputs.', 'danger')
+    else:
+        db.session.delete(story)
+        db.session.commit()
+        flash('Story deleted successfully!', 'success')
+    
+    return redirect(url_for('admin_dashboard'))
+
+# Game routes
 @app.route('/')
 def index():
     """Render the main game page."""
@@ -106,23 +167,17 @@ def index():
 @app.route('/api/story')
 def get_story():
     """Return a random story from the database."""
-    db = get_db()
     # Get all story IDs
-    cursor = db.execute("SELECT id FROM stories")
-    stories = cursor.fetchall()
+    stories = Story.query.with_entities(Story.id).all()
     
     if not stories:
         return jsonify({"error": "No stories available"}), 404
     
     # Choose a random story
-    story_id = random.choice(stories)['id']
+    story_id = random.choice(stories)[0]
     
     # Get the story details
-    cursor = db.execute(
-        "SELECT id, event, true_version, fake_version FROM stories WHERE id = ?", 
-        (story_id,)
-    )
-    story = cursor.fetchone()
+    story = Story.query.get(story_id)
     
     if not story:
         return jsonify({"error": "Story not found"}), 404
@@ -133,13 +188,16 @@ def get_story():
     else:
         labels = {"H": "true_version", "T": "fake_version"}
     
-    return jsonify({
-        "id": story['id'],
-        "event": story['event'],
-        "T": story[labels["T"]],
-        "H": story[labels["H"]],
+    # Get story data
+    story_data = {
+        "id": story.id,
+        "event": story.event,
+        "T": getattr(story, labels["T"]),
+        "H": getattr(story, labels["H"]),
         "true_label": "T" if labels["T"] == "true_version" else "H"
-    })
+    }
+    
+    return jsonify(story_data)
 
 @app.route('/api/submit', methods=['POST'])
 def submit_answer():
@@ -151,43 +209,38 @@ def submit_answer():
     session_id = data.get('session_id')
     story_id = data.get('story_id')
     choice = data.get('choice')
+    true_label = data.get('true_label')
     
-    if not all([session_id, story_id, choice]):
+    if not all([session_id, story_id, choice, true_label]):
         return jsonify({"error": "Missing required fields"}), 400
     
     if choice not in ['T', 'H']:
         return jsonify({"error": "Invalid choice"}), 400
     
-    db = get_db()
-    
-    # Get the true label and explanation
-    cursor = db.execute(
-        "SELECT explanation, true_version, fake_version FROM stories WHERE id = ?", 
-        (story_id,)
-    )
-    story = cursor.fetchone()
+    # Get the story
+    story = Story.query.get(story_id)
     
     if not story:
         return jsonify({"error": "Story not found"}), 404
     
-    # Get the true label from the request data
-    true_label = data.get('true_label')
-    
     # Check if the choice is correct
-    is_correct = 1 if choice == true_label else 0
+    is_correct = choice == true_label
     
     # Store the user's input
-    db.execute(
-        "INSERT INTO user_inputs (session_id, story_id, choice, is_correct) VALUES (?, ?, ?, ?)",
-        (session_id, story_id, choice, is_correct)
+    new_input = UserInput(
+        session_id=session_id,
+        story_id=story_id,
+        choice=choice,
+        is_correct=is_correct
     )
-    db.commit()
+    db.session.add(new_input)
+    db.session.commit()
     
     # Generate feedback message
     if is_correct:
-        feedback = f"Correct! This is the true story. {story['explanation']}"
+        feedback = f"Correct! This is the true story. {story.explanation}"
     else:
-        feedback = f"Incorrect. The other story is true. {story['explanation']}"
+        feedback = f"Incorrect. The other story is true. {story.explanation}"
     
     return jsonify({
         "is_correct": is_correct,
@@ -197,35 +250,25 @@ def submit_answer():
 @app.route('/api/stats/user/<session_id>')
 def get_user_stats(session_id):
     """Get statistics for a specific user."""
-    db = get_db()
+    # Count total inputs by this user
+    total_inputs = UserInput.query.filter_by(session_id=session_id).count()
     
-    # Get total attempts and correct answers
-    cursor = db.execute(
-        "SELECT COUNT(*) as total, SUM(is_correct) as correct FROM user_inputs WHERE session_id = ?",
-        (session_id,)
-    )
-    result = cursor.fetchone()
-    
-    total = result['total']
-    correct = result['correct'] or 0  # Handle None if no correct answers
+    # Count correct inputs
+    correct_inputs = UserInput.query.filter_by(session_id=session_id, is_correct=True).count()
     
     # Calculate accuracy
-    accuracy = (correct / total * 100) if total > 0 else 0
+    accuracy = (correct_inputs / total_inputs * 100) if total_inputs > 0 else 0
     
     return jsonify({
-        "total": total,
-        "correct": correct,
+        "total": total_inputs,
+        "correct": correct_inputs,
         "accuracy": round(accuracy, 2)
     })
 
 @app.route('/api/stats/overall')
 def get_overall_stats():
     """Get overall statistics for all stories."""
-    db = get_db()
-    
-    # Get all story IDs
-    cursor = db.execute("SELECT id FROM stories")
-    stories = cursor.fetchall()
+    stories = Story.query.all()
     
     if not stories:
         return jsonify({"error": "No stories available"}), 404
@@ -233,30 +276,20 @@ def get_overall_stats():
     stats = []
     
     for story in stories:
-        story_id = story['id']
+        # Count total attempts for this story
+        total_attempts = UserInput.query.filter_by(story_id=story.id).count()
         
-        # Get total attempts and correct answers for this story
-        cursor = db.execute(
-            "SELECT COUNT(*) as total, SUM(is_correct) as correct FROM user_inputs WHERE story_id = ?",
-            (story_id,)
-        )
-        result = cursor.fetchone()
-        
-        total = result['total']
-        correct = result['correct'] or 0  # Handle None if no correct answers
+        # Count correct answers
+        correct_answers = UserInput.query.filter_by(story_id=story.id, is_correct=True).count()
         
         # Calculate accuracy
-        accuracy = (correct / total * 100) if total > 0 else 0
-        
-        # Get the event name for display
-        cursor = db.execute("SELECT event FROM stories WHERE id = ?", (story_id,))
-        event = cursor.fetchone()['event']
+        accuracy = (correct_answers / total_attempts * 100) if total_attempts > 0 else 0
         
         stats.append({
-            "story_id": story_id,
-            "event": event,
+            "story_id": story.id,
+            "event": story.event,
             "accuracy": round(accuracy, 2),
-            "total_attempts": total
+            "total_attempts": total_attempts
         })
     
     return jsonify(stats)

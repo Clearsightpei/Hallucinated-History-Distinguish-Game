@@ -1,80 +1,45 @@
-# This file is not actively used in the current implementation
-# as we're using direct SQLite connections in app.py
-# It's included here for future expansion if needed
+import datetime
 
-from app import get_db
+# Models will be connected to db in app.py
 
-class Story:
-    """Class representing a historical story pair (true and fake versions)."""
-    
-    def __init__(self, id, event, true_version, fake_version, explanation):
-        self.id = id
-        self.event = event
-        self.true_version = true_version
-        self.fake_version = fake_version
-        self.explanation = explanation
-    
-    @staticmethod
-    def get_all():
-        """Get all stories from the database."""
-        db = get_db()
-        cursor = db.execute("SELECT * FROM stories")
-        return [Story(
-            row['id'], 
-            row['event'], 
-            row['true_version'], 
-            row['fake_version'], 
-            row['explanation']
-        ) for row in cursor.fetchall()]
-    
-    @staticmethod
-    def get_by_id(story_id):
-        """Get a story by its ID."""
-        db = get_db()
-        cursor = db.execute("SELECT * FROM stories WHERE id = ?", (story_id,))
-        row = cursor.fetchone()
-        if row:
-            return Story(
-                row['id'], 
-                row['event'], 
-                row['true_version'], 
-                row['fake_version'], 
-                row['explanation']
-            )
-        return None
+# These models will be initialized with db from app.py
+db = None
+Story = None
+UserInput = None
 
+def init_models(database):
+    global db, Story, UserInput
+    db = database
+    
+    class Story(db.Model):
+        """Model for historical stories (true and fake versions)."""
+        __tablename__ = 'stories'
+        
+        id = db.Column(db.String(10), primary_key=True)
+        event = db.Column(db.String(100), nullable=False)
+        true_version = db.Column(db.Text, nullable=False)
+        fake_version = db.Column(db.Text, nullable=False)
+        explanation = db.Column(db.Text, nullable=False)
+        created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+        
+        # Relationship to user inputs
+        user_inputs = db.relationship('UserInput', backref='story', lazy=True)
+        
+        def __repr__(self):
+            return f'<Story {self.id}: {self.event}>'
 
-class UserInput:
-    """Class representing a user's input/choice for a story."""
+    class UserInput(db.Model):
+        """Model for user's input/choice for a story."""
+        __tablename__ = 'user_inputs'
+        
+        input_id = db.Column(db.Integer, primary_key=True)
+        session_id = db.Column(db.String(50), nullable=False)
+        story_id = db.Column(db.String(10), db.ForeignKey('stories.id'), nullable=False)
+        choice = db.Column(db.String(1), nullable=False)  # 'T' or 'H'
+        is_correct = db.Column(db.Boolean, nullable=False)
+        created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+        
+        def __repr__(self):
+            return f'<UserInput {self.input_id}: session={self.session_id}, story={self.story_id}>'
     
-    def __init__(self, input_id, session_id, story_id, choice, is_correct):
-        self.input_id = input_id
-        self.session_id = session_id
-        self.story_id = story_id
-        self.choice = choice
-        self.is_correct = is_correct
-    
-    @staticmethod
-    def save(session_id, story_id, choice, is_correct):
-        """Save a user's input to the database."""
-        db = get_db()
-        db.execute(
-            "INSERT INTO user_inputs (session_id, story_id, choice, is_correct) VALUES (?, ?, ?, ?)",
-            (session_id, story_id, choice, is_correct)
-        )
-        db.commit()
-    
-    @staticmethod
-    def get_user_stats(session_id):
-        """Get statistics for a specific user."""
-        db = get_db()
-        cursor = db.execute(
-            "SELECT COUNT(*) as total, SUM(is_correct) as correct FROM user_inputs WHERE session_id = ?",
-            (session_id,)
-        )
-        result = cursor.fetchone()
-        return {
-            "total": result['total'],
-            "correct": result['correct'] or 0,
-            "accuracy": (result['correct'] / result['total'] * 100) if result['total'] > 0 else 0
-        }
+    return Story, UserInput
