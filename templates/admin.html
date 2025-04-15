@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Truth or Hoax</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Truth or Hoax</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Play Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin">Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="admin-header">
+            <h1>Admin Dashboard</h1>
+            <p class="lead">Manage folders and stories for the Truth or Hoax game.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <h2>Folders</h2>
+                <div class="list-group folder-list">
+                    {% for folder in folders %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ folder.name }}</h5>
+                            <small>Folder ID: {{ folder.id }}</small>
+                        </div>
+                        <div class="folder-actions">
+                            <a href="{{ url_for('view_folder', folder_id=folder.id) }}" class="btn btn-primary btn-sm">View Stories</a>
+                            {% if folder.id != 1 %}
+                            <form action="{{ url_for('delete_folder', folder_id=folder.id) }}" method="post" class="d-inline folder-delete-form" data-folder-name="{{ folder.name }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Add New Folder</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('add_folder') }}" method="post" onsubmit="return validateFolderForm()">
+                            <div class="mb-3">
+                                <label for="folder-name" class="form-label">Folder Name</label>
+                                <input type="text" class="form-control" id="folder-name" name="name" required>
+                                <div class="form-text">Choose a descriptive name for your folder (e.g., "Ancient Egypt", "World Wars").</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Folder</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

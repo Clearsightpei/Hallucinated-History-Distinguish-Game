@@ -3,80 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truth or Hoax? - Historical Story Game</title>
-    
+    <title>Truth or Hoax - Historical Stories Game</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <!-- Hidden session ID for JavaScript -->
-    <input type="hidden" id="session-id" value="{{ session_id }}">
-    
-    <div class="container py-5">
-        <!-- Game Header -->
-        <header class="text-center mb-5">
-            <h1 class="display-4 game-title">
-                <i class="fas fa-history me-2"></i> Truth or Hoax?
-            </h1>
-            <p class="lead instructions">Read the two stories and click the one you think is true.</p>
-        </header>
-        
-        <!-- Game Content -->
-        <main>
-            <!-- Stories Container -->
-            <div id="story-container" class="mb-4">
-                <div class="text-center my-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading a historical story...</p>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Truth or Hoax</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Play Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin">Admin</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <button id="user-stats-btn" class="btn btn-outline-light me-2">My Stats</button>
+                    <button id="overall-stats-btn" class="btn btn-outline-info">Overall Stats</button>
                 </div>
             </div>
-            
-            <!-- Feedback Container -->
-            <div id="feedback-container" class="mb-4 d-none"></div>
-            
-            <!-- Game Controls -->
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <button id="new-story-btn" class="btn btn-primary">
-                    <i class="fas fa-sync-alt me-2"></i> New Story
-                </button>
-                <button id="user-stats-btn" class="btn btn-info">
-                    <i class="fas fa-user-chart me-2"></i> Show My Stats
-                </button>
-                <button id="overall-stats-btn" class="btn btn-secondary">
-                    <i class="fas fa-chart-bar me-2"></i> Show Overall Stats
-                </button>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Truth or Hoax: Historical Edition</h1>
+                <p class="lead">Can you distinguish historical fact from fiction? Select the version of the story you believe is true!</p>
             </div>
-        </main>
-        
-        <!-- Footer -->
-        <footer class="mt-5 pt-4 text-center text-muted border-top">
-            <p>Truth or Hoax - A Historical Story Game</p>
-            <p class="small mt-2">
-                <a href="{{ url_for('admin_dashboard') }}" class="text-muted">
-                    <i class="fas fa-cog"></i> Admin
-                </a>
-            </p>
-        </footer>
+            <div class="col-md-4 d-flex align-items-center justify-content-end">
+                <div class="d-flex align-items-center">
+                    <label for="folder-selector" class="me-2">Folder:</label>
+                    <select id="folder-selector" class="form-select">
+                        {% for folder in folders %}
+                        <option value="{{ folder.id }}" {% if folder.id == 1 %}selected{% endif %}>{{ folder.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 bg-dark">
+            <div class="card-header">
+                <h2 id="event-title" class="card-title text-center">Loading story...</h2>
+            </div>
+            <div class="card-body">
+                <div id="story-container" class="row">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="feedback-container"></div>
+
+        <div class="d-flex justify-content-center mt-4">
+            <button id="new-story-btn" class="btn btn-primary btn-lg">New Story</button>
+        </div>
     </div>
-    
+
     <!-- Stats Modal -->
-    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="stats-modal" tabindex="-1" aria-labelledby="stats-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="statsModalLabel">Statistics</h5>
+                    <h5 class="modal-title" id="stats-modal-title">Statistics</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="statsModalBody">
-                    <!-- Stats content will be inserted here -->
+                <div class="modal-body" id="stats-modal-body">
+                    Loading statistics...
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -84,11 +90,10 @@
             </div>
         </div>
     </div>
-    
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Game JavaScript -->
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

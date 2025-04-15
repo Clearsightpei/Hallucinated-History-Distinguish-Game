@@ -1,259 +1,220 @@
+// Global variables
+let currentStory = null;
+let currentFolderId = 1; // Default to General folder
+
+// Initialize game when document is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Elements
-    const storyContainer = document.getElementById('story-container');
-    const feedbackContainer = document.getElementById('feedback-container');
-    const newStoryBtn = document.getElementById('new-story-btn');
-    const userStatsBtn = document.getElementById('user-stats-btn');
-    const overallStatsBtn = document.getElementById('overall-stats-btn');
-    const sessionId = document.getElementById('session-id').value;
+    // Set up event listeners
+    document.getElementById('new-story-btn').addEventListener('click', loadNewStory);
+    document.getElementById('folder-selector').addEventListener('change', changeFolder);
+    document.getElementById('user-stats-btn').addEventListener('click', showUserStats);
+    document.getElementById('overall-stats-btn').addEventListener('click', showOverallStats);
     
-    // Game state
-    let currentStory = null;
-    
-    // Initialize
+    // Load initial story
     loadNewStory();
+});
+
+// Load a new story from the current folder
+function loadNewStory() {
+    // Clear previous feedback
+    document.getElementById('feedback-container').innerHTML = '';
+    document.getElementById('story-container').classList.remove('disabled');
     
-    // Event listeners
-    newStoryBtn.addEventListener('click', loadNewStory);
-    userStatsBtn.addEventListener('click', showUserStats);
-    overallStatsBtn.addEventListener('click', showOverallStats);
+    // Enable story buttons
+    const storyButtons = document.querySelectorAll('.story-btn');
+    storyButtons.forEach(btn => {
+        btn.disabled = false;
+    });
     
-    /**
-     * Load a new story from the API
-     */
-    function loadNewStory() {
-        // Clear previous feedback
-        feedbackContainer.innerHTML = '';
-        feedbackContainer.classList.add('d-none');
-        
-        // Show loading state
-        storyContainer.innerHTML = `
-            <div class="text-center my-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Loading a historical story...</p>
-            </div>
-        `;
-        
-        // Fetch a random story
-        fetch('/api/story')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load story');
-                }
-                return response.json();
-            })
-            .then(story => {
-                displayStory(story);
-                currentStory = story;
-            })
-            .catch(error => {
-                storyContainer.innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        ${error.message}. Please try again later.
-                    </div>
-                `;
-                console.error('Error:', error);
-            });
-    }
-    
-    /**
-     * Display a story on the page
-     */
-    function displayStory(story) {
-        storyContainer.innerHTML = `
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">${story.event}</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <div class="card h-100">
-                                <div class="card-header bg-secondary">
-                                    <h4 class="mb-0">Story T</h4>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <p class="flex-grow-1">${story.T}</p>
-                                    <button class="btn btn-outline-success mt-3 story-choice" 
-                                            data-choice="T">
-                                        This is True
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header bg-secondary">
-                                    <h4 class="mb-0">Story H</h4>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <p class="flex-grow-1">${story.H}</p>
-                                    <button class="btn btn-outline-success mt-3 story-choice" 
-                                            data-choice="H">
-                                        This is True
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Add event listeners to the choice buttons
-        document.querySelectorAll('.story-choice').forEach(button => {
-            button.addEventListener('click', function() {
-                const choice = this.getAttribute('data-choice');
-                submitChoice(choice);
-                
-                // Disable all choice buttons
-                document.querySelectorAll('.story-choice').forEach(btn => {
-                    btn.disabled = true;
-                });
-            });
-        });
-    }
-    
-    /**
-     * Submit the user's choice to the API
-     */
-    function submitChoice(choice) {
-        if (!currentStory) {
-            console.error('No story loaded');
-            return;
-        }
-        
-        const data = {
-            session_id: sessionId,
-            story_id: currentStory.id,
-            choice: choice,
-            true_label: currentStory.true_label
-        };
-        
-        fetch('/api/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
+    // Fetch a story from the API
+    fetch(`/api/story?folder_id=${currentFolderId}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Failed to submit choice');
+                throw new Error('No stories found in this folder');
             }
             return response.json();
         })
-        .then(result => {
-            displayFeedback(result, choice);
+        .then(data => {
+            currentStory = data;
+            displayStory(data);
         })
         .catch(error => {
-            feedbackContainer.innerHTML = `
-                <div class="alert alert-danger" role="alert">
-                    ${error.message}. Please try again.
+            console.error('Error:', error);
+            document.getElementById('story-container').innerHTML = `
+                <div class="alert alert-warning" role="alert">
+                    ${error.message || 'Error loading story. Please try again.'}
                 </div>
             `;
-            feedbackContainer.classList.remove('d-none');
-            console.error('Error:', error);
         });
-    }
+}
+
+// Display story on the page
+function displayStory(story) {
+    document.getElementById('event-title').textContent = story.event;
     
-    /**
-     * Display feedback after a choice is made
-     */
-    function displayFeedback(result, choice) {
-        let alertClass = result.is_correct ? 'alert-success' : 'alert-danger';
+    const storyContainer = document.getElementById('story-container');
+    storyContainer.innerHTML = '';
+    
+    // Create buttons for each version
+    story.versions.forEach((version, index) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 mb-3';
         
-        feedbackContainer.innerHTML = `
-            <div class="alert ${alertClass}" role="alert">
-                <h4 class="alert-heading">${result.is_correct ? 'Correct!' : 'Incorrect!'}</h4>
-                <p>${result.explanation}</p>
-                <hr>
-                <p class="mb-0">Click "New Story" to try another historical story.</p>
+        const card = document.createElement('div');
+        card.className = 'card h-100';
+        
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        
+        const storyText = document.createElement('p');
+        storyText.textContent = version.content;
+        
+        const button = document.createElement('button');
+        button.className = 'btn btn-primary w-100 mt-3 story-btn';
+        button.textContent = `Select Story ${index + 1}`;
+        button.dataset.choice = version.type;
+        button.addEventListener('click', () => submitAnswer(version.type));
+        
+        cardBody.appendChild(storyText);
+        cardBody.appendChild(button);
+        card.appendChild(cardBody);
+        col.appendChild(card);
+        
+        storyContainer.appendChild(col);
+    });
+}
+
+// Submit the user's answer
+function submitAnswer(choice) {
+    if (!currentStory) return;
+    
+    // Disable story buttons to prevent multiple submissions
+    const storyButtons = document.querySelectorAll('.story-btn');
+    storyButtons.forEach(btn => {
+        btn.disabled = true;
+    });
+    
+    document.getElementById('story-container').classList.add('disabled');
+    
+    // Send answer to API
+    fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            story_id: currentStory.story_id,
+            choice: choice
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        showFeedback(data.is_correct, data.explanation);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('feedback-container').innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                Error submitting answer. Please try again.
             </div>
         `;
-        
-        feedbackContainer.classList.remove('d-none');
-        
-        // Highlight the true and false stories
-        const trueStory = document.querySelector(`.card:has([data-choice="${currentStory.true_label}"])`);
-        const falseStory = document.querySelector(`.card:has([data-choice="${currentStory.true_label === 'T' ? 'H' : 'T'}"])`);
-        
-        if (trueStory) {
-            trueStory.classList.add('border-success');
-            trueStory.querySelector('.card-header').classList.remove('bg-secondary');
-            trueStory.querySelector('.card-header').classList.add('bg-success');
-        }
-        
-        if (falseStory) {
-            falseStory.classList.add('border-danger');
-            falseStory.querySelector('.card-header').classList.remove('bg-secondary');
-            falseStory.querySelector('.card-header').classList.add('bg-danger');
-        }
-    }
+    });
+}
+
+// Show feedback after answer submission
+function showFeedback(isCorrect, explanation) {
+    const feedbackContainer = document.getElementById('feedback-container');
     
-    /**
-     * Show the user's statistics
-     */
-    function showUserStats() {
-        fetch(`/api/stats/user/${sessionId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load user statistics');
-                }
-                return response.json();
-            })
-            .then(stats => {
-                // Show stats in a modal
-                const statsModal = new bootstrap.Modal(document.getElementById('statsModal'));
-                document.getElementById('statsModalLabel').textContent = 'Your Statistics';
-                document.getElementById('statsModalBody').innerHTML = `
-                    <p>You've tried <strong>${stats.total}</strong> stories.</p>
-                    <p>You got <strong>${stats.correct}</strong> correct.</p>
-                    <p>Your accuracy rate: <strong>${stats.accuracy}%</strong></p>
+    const alertClass = isCorrect ? 'alert-success' : 'alert-danger';
+    const resultText = isCorrect ? 'Correct!' : 'Incorrect!';
+    
+    feedbackContainer.innerHTML = `
+        <div class="alert ${alertClass}" role="alert">
+            <h4>${resultText}</h4>
+            <p>${isCorrect ? 'This is the true story.' : 'The other story is true.'}</p>
+            <hr>
+            <p><strong>Explanation:</strong> ${explanation}</p>
+        </div>
+    `;
+}
+
+// Change the current folder
+function changeFolder() {
+    const selector = document.getElementById('folder-selector');
+    currentFolderId = selector.value;
+    
+    // Reset feedback and load new story
+    document.getElementById('feedback-container').innerHTML = '';
+    loadNewStory();
+}
+
+// Show user statistics
+function showUserStats() {
+    fetch(`/api/stats/user/${getSessionId()}`)
+        .then(response => response.json())
+        .then(data => {
+            const modal = new bootstrap.Modal(document.getElementById('stats-modal'));
+            document.getElementById('stats-modal-title').textContent = 'Your Statistics';
+            
+            let content = `
+                <p>Total attempts: ${data.total_attempts}</p>
+                <p>Correct answers: ${data.correct_count}</p>
+                <p>Accuracy: ${data.accuracy}%</p>
+            `;
+            
+            if (data.total_attempts === 0) {
+                content = '<p>You haven\'t played any games yet!</p>';
+            }
+            
+            document.getElementById('stats-modal-body').innerHTML = content;
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading user statistics');
+        });
+}
+
+// Show overall game statistics
+function showOverallStats() {
+    fetch('/api/stats/overall')
+        .then(response => response.json())
+        .then(data => {
+            const modal = new bootstrap.Modal(document.getElementById('stats-modal'));
+            document.getElementById('stats-modal-title').textContent = 'Overall Game Statistics';
+            
+            let content = '<table class="table table-striped">';
+            content += '<thead><tr><th>Story</th><th>Attempts</th><th>Accuracy</th></tr></thead><tbody>';
+            
+            data.forEach(story => {
+                content += `
+                    <tr>
+                        <td>${story.event}</td>
+                        <td>${story.total_attempts}</td>
+                        <td>${story.accuracy}%</td>
+                    </tr>
                 `;
-                statsModal.show();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to load statistics: ' + error.message);
             });
-    }
-    
-    /**
-     * Show overall statistics for all stories
-     */
-    function showOverallStats() {
-        fetch('/api/stats/overall')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load overall statistics');
-                }
-                return response.json();
-            })
-            .then(stats => {
-                // Show stats in a modal
-                const statsModal = new bootstrap.Modal(document.getElementById('statsModal'));
-                document.getElementById('statsModalLabel').textContent = 'Overall Statistics';
-                
-                let statsHtml = '<ul class="list-group">';
-                stats.forEach(stat => {
-                    statsHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${stat.event}
-                            <span class="badge bg-primary rounded-pill">${stat.accuracy}% correct (${stat.total_attempts} attempts)</span>
-                        </li>
-                    `;
-                });
-                statsHtml += '</ul>';
-                
-                document.getElementById('statsModalBody').innerHTML = statsHtml;
-                statsModal.show();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to load statistics: ' + error.message);
-            });
-    }
-});
+            
+            content += '</tbody></table>';
+            
+            if (data.length === 0) {
+                content = '<p>No game statistics available yet.</p>';
+            }
+            
+            document.getElementById('stats-modal-body').innerHTML = content;
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading overall statistics');
+        });
+}
+
+// Get session ID from cookies
+function getSessionId() {
+    // This is a simplified approach - in a real app, we'd use a proper session management approach
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('session='))
+        ?.split('=')[1] || 'unknown-session';
+}
