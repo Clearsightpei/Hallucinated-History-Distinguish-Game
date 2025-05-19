@@ -191,17 +191,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserStats(userId: string, folderId?: number): Promise<UserStats> {
-    let query = db
-      .select({
-        story_id: userAttempts.story_id,
-        correct: userAttempts.correct
-      })
-      .from(userAttempts)
-      .where(eq(userAttempts.user_id, userId));
-      
-    if (folderId) {
-      // If folder ID is specified, join with stories to filter by folder_id
-      query = db
+    console.log("Fetching stats for userId:", userId, "folderId:", folderId);
+
+    let attempts: { story_id: number; correct: boolean }[] = [];
+
+    if (folderId && folderId !== 1) {
+      // For specific folders (not General), filter by folder_id
+      attempts = await db
         .select({
           story_id: userAttempts.story_id,
           correct: userAttempts.correct
@@ -214,19 +210,25 @@ export class DatabaseStorage implements IStorage {
             eq(stories.folder_id, folderId)
           )
         );
+    } else {
+      // For General folder (folderId 1) or no folderId, aggregate all stories for the user
+      attempts = await db
+        .select({
+          story_id: userAttempts.story_id,
+          correct: userAttempts.correct
+        })
+        .from(userAttempts)
+        .where(eq(userAttempts.user_id, userId));
     }
-    
-    const attempts = await query;
-    
+
+    console.log("Found attempts:", attempts);
+
     const total_attempts = attempts.length;
     const correct_count = attempts.filter(a => a.correct).length;
     const accuracy = total_attempts > 0 ? (correct_count / total_attempts) * 100 : 0;
-    
-    return {
-      correct_count,
-      total_attempts,
-      accuracy
-    };
+
+    console.log("Stats:", { correct_count, total_attempts, accuracy });
+    return { correct_count, total_attempts, accuracy };
   }
 
   async getStoryStats(folderId?: number): Promise<StoryStats[]> {

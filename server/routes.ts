@@ -223,11 +223,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/attempt - Record a user attempt
   app.post("/api/attempt", async (req, res) => {
     try {
+      // Log the incoming user_id and payload
+      console.log("Received attempt payload:", req.body);
+
       const validatedData = insertUserAttemptSchema.parse(req.body);
       const story = await storage.getStoryById(validatedData.story_id);
       if (!story) {
         return res.status(404).json({ message: "Story not found" });
       }
+      // Log the validated user_id
+      console.log("Validated user_id for attempt:", validatedData.user_id);
+
       const attempt = await storage.recordAttempt(validatedData);
       res.status(201).json(attempt);
     } catch (error) {
@@ -244,15 +250,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.query.userId as string;
       const folderId = req.query.folder ? parseInt(req.query.folder as string) : undefined;
-      
+
+      // Log the userId being used for stats query
+      console.log("Querying user stats for userId:", userId);
+
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
-      
+
       if (req.query.folder && isNaN(folderId!)) {
         return res.status(400).json({ message: "Invalid folder ID" });
       }
-      
+
       const stats = await storage.getUserStats(userId, folderId);
       res.json(stats);
     } catch (error) {

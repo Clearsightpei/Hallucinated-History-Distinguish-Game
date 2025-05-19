@@ -130,25 +130,33 @@ export default function Game() {
   // Handle story selection
   const handleSelectChoice = useCallback(async (choice: "true" | "fake") => {
     if (!currentStory) return;
-    
+
     const isChoiceCorrect = choice === "true";
     setSelectedChoice(choice);
     setIsCorrect(isChoiceCorrect);
-    
+
+    // Log the sessionId and data being sent
+    console.log("Recording attempt:", {
+      user_id: sessionId,
+      story_id: currentStory.id,
+      choice,
+      correct: isChoiceCorrect
+    });
+    console.log("Session ID in localStorage:", localStorage.getItem("true-false-history-session"));
+
     try {
       await recordAttemptMutation.mutateAsync({
         story_id: currentStory.id,
         choice,
         correct: isChoiceCorrect
       });
-      
-      // Refetch stats after recording the attempt
+
       refetchUserStats();
       refetchStoryStats();
     } catch (error) {
       console.error("Failed to record attempt:", error);
     }
-  }, [currentStory, recordAttemptMutation, refetchUserStats, refetchStoryStats]);
+  }, [currentStory, recordAttemptMutation, refetchUserStats, refetchStoryStats, sessionId]);
   
   // Reset and load next story
   const handleNextStory = useCallback(() => {

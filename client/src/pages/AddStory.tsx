@@ -145,7 +145,7 @@ export default function AddStory() {
                     name="event"
                     value={formData.event}
                     onChange={handleChange}
-                    placeholder="e.g., Moon Landing 1969"
+                    placeholder="Enter the event title"
                     maxLength={100}
                     className={errors.event ? "border-error" : ""}
                   />
@@ -167,7 +167,7 @@ export default function AddStory() {
                     name="introduction"
                     value={formData.introduction}
                     onChange={handleChange}
-                    placeholder="Provide context for the historical event"
+                    placeholder="Please provide context"
                     maxLength={300}
                     rows={2}
                     className={errors.introduction ? "border-error" : ""}
@@ -190,9 +190,8 @@ export default function AddStory() {
                     name="true_version"
                     value={formData.true_version}
                     onChange={handleChange}
-                    placeholder="The historically accurate account"
-                    minLength={10}
-                    maxLength={2000}
+                    placeholder="The actual story"
+                    maxLength={3000}
                     rows={4}
                     className={errors.true_version ? "border-error" : ""}
                   />
@@ -200,7 +199,7 @@ export default function AddStory() {
                 {errors.true_version ? (
                   <p className="mt-1 text-xs text-error">{errors.true_version}</p>
                 ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Between 10-2000 characters</p>
+                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
                 )}
               </div>
 
@@ -214,9 +213,8 @@ export default function AddStory() {
                     name="fake_version"
                     value={formData.fake_version}
                     onChange={handleChange}
-                    placeholder="The historically inaccurate account"
-                    minLength={10}
-                    maxLength={2000}
+                    placeholder="The faked story"
+                    maxLength={3000}
                     rows={4}
                     className={errors.fake_version ? "border-error" : ""}
                   />
@@ -224,7 +222,7 @@ export default function AddStory() {
                 {errors.fake_version ? (
                   <p className="mt-1 text-xs text-error">{errors.fake_version}</p>
                 ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Between 10-2000 characters</p>
+                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
                 )}
               </div>
 
@@ -239,8 +237,7 @@ export default function AddStory() {
                     value={formData.explanation}
                     onChange={handleChange}
                     placeholder="Explain why the true version is correct"
-                    minLength={10}
-                    maxLength={1000}
+                    maxLength={3000}
                     rows={3}
                     className={errors.explanation ? "border-error" : ""}
                   />
@@ -248,7 +245,7 @@ export default function AddStory() {
                 {errors.explanation ? (
                   <p className="mt-1 text-xs text-error">{errors.explanation}</p>
                 ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Between 10-1000 characters</p>
+                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
                 )}
               </div>
 

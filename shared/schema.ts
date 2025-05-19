@@ -12,7 +12,7 @@ export const folders = pgTable("folders", {
 export const insertFolderSchema = createInsertSchema(folders).pick({
   name: true,
 }).extend({
-  name: z.string().min(2).max(50),
+  name: z.string().max(50),
 });
 
 // Stories table
@@ -34,11 +34,11 @@ export const insertStorySchema = createInsertSchema(stories).pick({
   fake_version: true,
   explanation: true,
 }).extend({
-  event: z.string().max(100),
-  introduction: z.string().max(300),
-  true_version: z.string().min(10).max(2000),
-  fake_version: z.string().min(10).max(2000),
-  explanation: z.string().min(10).max(1000),
+  event: z.string().max(3000),
+  introduction: z.string().max(3000),
+  true_version: z.string().max(3000),
+  fake_version: z.string().max(3000),
+  explanation: z.string().max(3000),
 });
 
 // User attempts table
