@@ -96,7 +96,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (id === 1) {
         return res.status(403).json({ message: "Cannot delete the General folder" });
       }
-      
+
+      // Delete all stories in the folder before deleting the folder itself
+      const stories = await storage.getStories(id);
+      if (stories.length > 0) {
+        for (const story of stories) {
+          await storage.deleteStory(story.id);
+        }
+      }
+
       const success = await storage.deleteFolder(id);
       if (!success) {
         return res.status(404).json({ message: "Folder not found" });
