@@ -164,6 +164,7 @@ export default function FolderDetail() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-neutral-800">{folder.name}</h2>
         <div className="flex space-x-3">
+          <Button variant="outline" onClick={() => navigate("/folders")}>Go Back to Folder Menu</Button>
           <Button onClick={handleAddStory}>
             <Plus className="mr-2 h-5 w-5" />
             Add Story

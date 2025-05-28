@@ -25,12 +25,12 @@ export default function CreateFolderDialog({
   onFolderCreated,
 }: CreateFolderDialogProps) {
   const [folderName, setFolderName] = useState("");
+  const [folderPassword, setFolderPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!folderName.trim()) {
       toast({
         title: "Error",
@@ -39,7 +39,6 @@ export default function CreateFolderDialog({
       });
       return;
     }
-    
     if (folderName.length < 2 || folderName.length > 50) {
       toast({
         title: "Error",
@@ -48,16 +47,21 @@ export default function CreateFolderDialog({
       });
       return;
     }
-    
     setIsSubmitting(true);
-    
     try {
-      await apiRequest("POST", "/api/folders", { name: folderName });
+      // Create folder
+      const res = await apiRequest("POST", "/api/folders", { name: folderName });
+      const result = await res.json();
+      // Save password to localStorage if set
+      if (folderPassword && result && result.id) {
+        localStorage.setItem(`folder_password_${result.id}`, folderPassword);
+      }
       toast({
         title: "Success",
         description: "Folder created successfully",
       });
       setFolderName("");
+      setFolderPassword("");
       onFolderCreated();
       onOpenChange(false);
     } catch (error) {
@@ -70,14 +74,14 @@ export default function CreateFolderDialog({
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Folder</DialogTitle>
           <DialogDescription>
-            Create a new folder to organize your history stories.
+            Create a new folder to organize your history stories. Optionally set a password to protect it.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -87,12 +91,23 @@ export default function CreateFolderDialog({
               <Input
                 id="folderName"
                 value={folderName}
-                onChange={(e) => setFolderName(e.target.value)}
+                onChange={e => setFolderName(e.target.value)}
                 placeholder="e.g., World Wars"
                 minLength={2}
                 maxLength={50}
               />
               <p className="text-xs text-neutral-500">Between 2-50 characters</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="folderPassword">Password (optional)</Label>
+              <Input
+                id="folderPassword"
+                type="password"
+                value={folderPassword}
+                onChange={e => setFolderPassword(e.target.value)}
+                placeholder="Set a password (optional)"
+              />
+              <p className="text-xs text-neutral-500">Leave blank for no password</p>
             </div>
           </div>
           <DialogFooter>

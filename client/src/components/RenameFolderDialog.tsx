@@ -29,19 +29,25 @@ export default function RenameFolderDialog({
 }: RenameFolderDialogProps) {
   const [folderName, setFolderName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
   const { toast } = useToast();
-  
+
   useEffect(() => {
     if (folder) {
       setFolderName(folder.name);
+      // Load password from localStorage if exists
+      const storedPassword =
+        localStorage.getItem(`folder_password_${folder.id}`) || "";
+      setPassword(storedPassword);
     }
   }, [folder]);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!folder) return;
-    
+
     if (!folderName.trim()) {
       toast({
         title: "Error",
@@ -50,7 +56,7 @@ export default function RenameFolderDialog({
       });
       return;
     }
-    
+
     if (folderName.length < 2 || folderName.length > 50) {
       toast({
         title: "Error",
@@ -59,11 +65,13 @@ export default function RenameFolderDialog({
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       await apiRequest("PUT", `/api/folders/${folder.id}`, { name: folderName });
+      // Save password to localStorage
+      localStorage.setItem(`folder_password_${folder.id}`, password);
       toast({
         title: "Success",
         description: "Folder renamed successfully",
@@ -80,16 +88,16 @@ export default function RenameFolderDialog({
       setIsSubmitting(false);
     }
   };
-  
+
   if (!folder) return null;
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Rename Folder</DialogTitle>
           <DialogDescription>
-            Change the name of the folder.
+            Change the name of the folder and optionally set or change the password.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -106,9 +114,28 @@ export default function RenameFolderDialog({
               />
               <p className="text-xs text-neutral-500">Between 2-50 characters</p>
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="folderPassword">
+                Password (leave blank for no password)
+              </Label>
+              <Input
+                id="folderPassword"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter new password or leave blank"
+              />
+              <p className="text-xs text-neutral-500">
+                Set a password to protect this folder
+              </p>
+            </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

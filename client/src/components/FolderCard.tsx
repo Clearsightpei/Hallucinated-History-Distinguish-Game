@@ -8,9 +8,10 @@ interface FolderCardProps {
   folder: FolderWithStoryCount;
   onEdit: () => void;
   onDelete: () => void;
+  onViewStories?: () => void; // Add this prop for password-protected navigation
 }
 
-export default function FolderCard({ folder, onEdit, onDelete }: FolderCardProps) {
+export default function FolderCard({ folder, onEdit, onDelete, onViewStories }: FolderCardProps) {
   const isGeneral = folder.id === 1;
   
   return (
@@ -30,11 +31,19 @@ export default function FolderCard({ folder, onEdit, onDelete }: FolderCardProps
       </CardContent>
       <CardFooter className="border-t border-neutral-200 bg-neutral-50 px-5 py-3">
         <div className="flex justify-between w-full">
-          <Link href={`/folders/${folder.id}`}>
-            <a className="text-sm font-medium text-primary hover:text-primary-dark">
+          {onViewStories ? (
+            <button
+              className="text-sm font-medium text-primary hover:text-primary-dark bg-transparent border-none p-0 m-0 cursor-pointer"
+              onClick={onViewStories}
+              style={{ background: 'none' }}
+            >
+              View Stories
+            </button>
+          ) : (
+            <a className="text-sm font-medium text-primary hover:text-primary-dark" href={`/folders/${folder.id}`}>
               View Stories
             </a>
-          </Link>
+          )}
           <div className="flex space-x-3">
             <Button
               variant="ghost"

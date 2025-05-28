@@ -73,16 +73,118 @@ export default function Folders() {
     setSearchQuery(query);
   };
   
+  // Utility functions for password and access control
+  const getFolderPassword = (folderId: number) => {
+    return localStorage.getItem(`folder_password_${folderId}`) || "";
+  };
+  
+  const setFolderPassword = (folderId: number, password: string) => {
+    localStorage.setItem(`folder_password_${folderId}`, password);
+  };
+  
+  const getFolderAccess = (folderId: number) => {
+    const access = localStorage.getItem(`folder_access_${folderId}`);
+    if (!access) return null;
+    try {
+      return JSON.parse(access);
+    } catch {
+      return null;
+    }
+  };
+  
+  const grantFolderAccess = (folderId: number) => {
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    localStorage.setItem(
+      `folder_access_${folderId}`,
+      JSON.stringify({ granted: true, expiresAt })
+    );
+  };
+  
+  const clearFolderAccess = (folderId: number) => {
+    localStorage.removeItem(`folder_access_${folderId}`);
+  };
+  
+  const isFolderAccessGranted = (folderId: number) => {
+    const access = getFolderAccess(folderId);
+    if (!access) return false;
+    if (Date.now() > access.expiresAt) {
+      clearFolderAccess(folderId);
+      return false;
+    }
+    return access.granted;
+  };
+  
+  // Prompt for password (simple window.prompt for now)
+  const promptForPassword = async (message: string) => {
+    return window.prompt(message) || "";
+  };
+  
+  // Handle View Stories with password check
+  const handleViewStories = async (folder: FolderWithStoryCount) => {
+    const folderPassword = getFolderPassword(folder.id);
+    if (!folderPassword) {
+      // No password, allow access
+      window.location.href = `/folders/${folder.id}`;
+      return;
+    }
+    if (isFolderAccessGranted(folder.id)) {
+      window.location.href = `/folders/${folder.id}`;
+      return;
+    }
+    const input = await promptForPassword(`Enter password for folder "${folder.name}":`);
+    if (input === folderPassword) {
+      grantFolderAccess(folder.id);
+      window.location.href = `/folders/${folder.id}`;
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Incorrect password.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Handle folder edit
-  const handleEditFolder = (folder: FolderWithStoryCount) => {
-    setSelectedFolder(folder);
-    setIsRenameFolderOpen(true);
+  const handleEditFolder = async (folder: FolderWithStoryCount) => {
+    const folderPassword = getFolderPassword(folder.id);
+    if (!folderPassword) {
+      setSelectedFolder(folder);
+      setIsRenameFolderOpen(true);
+      return;
+    }
+    const input = await promptForPassword(`Enter current password to edit folder "${folder.name}":`);
+    if (input === folderPassword) {
+      setSelectedFolder(folder);
+      setIsRenameFolderOpen(true);
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Incorrect password.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle folder delete
-  const handleOpenDeleteFolder = (folder: FolderWithStoryCount) => {
-    setSelectedFolder(folder);
-    setIsDeleteFolderOpen(true);
+  const handleOpenDeleteFolder = async (folder: FolderWithStoryCount) => {
+    const folderPassword = getFolderPassword(folder.id);
+    if (!folderPassword || isFolderAccessGranted(folder.id)) {
+      setSelectedFolder(folder);
+      setIsDeleteFolderOpen(true);
+      return;
+    }
+    const input = await promptForPassword(`Enter password to delete folder "${folder.name}":`);
+    if (input === folderPassword) {
+      grantFolderAccess(folder.id);
+      setSelectedFolder(folder);
+      setIsDeleteFolderOpen(true);
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Incorrect password.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handle folder creation success
@@ -135,6 +237,7 @@ export default function Folders() {
               folder={folder}
               onEdit={() => handleEditFolder(folder)}
               onDelete={() => handleOpenDeleteFolder(folder)}
+              onViewStories={() => handleViewStories(folder)}
             />
           ))}
         </div>
