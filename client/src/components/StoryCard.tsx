@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Story } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface StoryCardProps {
   story: Story;
@@ -29,17 +30,29 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
     onSelect(isRandomized ? "fake" : "true");
   };
   
+  // Card style helpers
+  const baseCard =
+    "rounded-2xl w-[150%] max-w-4xl text-[#00ffe0] transition-all duration-300 hover:scale-105 hover:shadow-xl";
+  const neonA =
+    "bg-[#d6b85a] border-4 border-[#ffd700] shadow-[0_0_16px_2px_#ffd70055] hover:shadow-[0_0_32px_6px_#ffd70099]";
+  const neonB =
+    "bg-[#2e2633] border-4 border-[#9e4f8e] shadow-[0_0_16px_2px_#9e4f8e55] hover:shadow-[0_0_32px_6px_#9e4f8e99]";
+
   return (
     <div className="flex flex-col items-center gap-6 mb-8">
-      <Card className="bg-white rounded-lg shadow overflow-hidden border-3 border-neutral-200 hover:border-primary transition-colors w-[150%] max-w-5xl">
+      <motion.div
+        whileHover={{ scale: 1.05, boxShadow: "0 0 32px 6px #4f5b9e" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`${baseCard} ${neonA}`}
+      >
         <CardContent className="p-6">
           <h3 className="font-semibold text-lg mb-3">Version A</h3>
-          <p className="text-neutral-700">{firstVersion}</p>
+          <p>{firstVersion}</p>
         </CardContent>
         {isSelectable && (
-          <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-200">
+          <div className="px-6 py-4 border-t border-[#ffd700]">
             <Button 
-              className="w-full" 
+              className="w-full text-[#ffd700] border-none bg-transparent hover:bg-[#ffd700]/10"
               onClick={handleSelectFirst}
               variant="default"
             >
@@ -47,17 +60,21 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
             </Button>
           </div>
         )}
-      </Card>
+      </motion.div>
 
-      <Card className="bg-white rounded-lg shadow overflow-hidden border-3 border-neutral-200 hover:border-primary transition-colors w-[150%] max-w-5xl">
+      <motion.div
+        whileHover={{ scale: 1.05, boxShadow: "0 0 32px 6px #9e4f8e" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`${baseCard} ${neonB}`}
+      >
         <CardContent className="p-6">
           <h3 className="font-semibold text-lg mb-3">Version B</h3>
-          <p className="text-neutral-700">{secondVersion}</p>
+          <p>{secondVersion}</p>
         </CardContent>
         {isSelectable && (
-          <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-200">
+          <div className="px-6 py-4 bg-[#2e2633] border-t border-[#9e4f8e]">
             <Button 
-              className="w-full" 
+              className="w-full text-[#9e4f8e] border-none bg-transparent hover:bg-[#9e4f8e]/10"
               onClick={handleSelectSecond}
               variant="default"
             >
@@ -65,7 +82,7 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
             </Button>
           </div>
         )}
-      </Card>
+      </motion.div>
     </div>
   );
 }

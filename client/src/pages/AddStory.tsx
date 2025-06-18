@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertStorySchema } from "@shared/schema";
 import { z } from "zod";
+import PageGradientBackground from "@/components/PageGradientBackground";
 
 export default function AddStory() {
   const { id } = useParams<{ id: string }>();
@@ -122,154 +123,142 @@ export default function AddStory() {
   }
   
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-800">Add New Story</h1>
-        <Button variant="outline" onClick={handleBack}>
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Back to Folder
-        </Button>
+    <PageGradientBackground>
+      <div>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-neutral-800">Add New Story</h1>
+          <Button variant="outline" onClick={handleBack}>
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Back to Folder
+          </Button>
+        </div>
+
+        <Card className="bg-[#1a3c42] shadow rounded-lg overflow-hidden">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="event" className="block text-sm font-medium text-[#00ffe0]">
+                    Event Title
+                  </Label>
+                  <div className="mt-1">
+                    <Input
+                      id="event"
+                      name="event"
+                      value={formData.event}
+                      onChange={handleChange}
+                      placeholder="Enter the event title"
+                      className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                    />
+                  </div>
+                  {errors.event ? (
+                    <p className="mt-1 text-xs text-error">{errors.event}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-neutral-500">Maximum 100 characters</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="introduction" className="block text-sm font-medium text-[#00ffe0]">
+                    Introduction
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="introduction"
+                      name="introduction"
+                      value={formData.introduction}
+                      onChange={handleChange}
+                      placeholder="Provide context for the historical event"
+                      className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                    />
+                  </div>
+                  {errors.introduction ? (
+                    <p className="mt-1 text-xs text-error">{errors.introduction}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-neutral-500">Maximum 300 characters</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="true_version" className="block text-sm font-medium text-[#00ffe0]">
+                    True Version
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="true_version"
+                      name="true_version"
+                      value={formData.true_version}
+                      onChange={handleChange}
+                      placeholder="The historically accurate account"
+                      className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                    />
+                  </div>
+                  {errors.true_version ? (
+                    <p className="mt-1 text-xs text-error">{errors.true_version}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="fake_version" className="block text-sm font-medium text-[#00ffe0]">
+                    Fake Version
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="fake_version"
+                      name="fake_version"
+                      value={formData.fake_version}
+                      onChange={handleChange}
+                      placeholder="The fabricated or altered account"
+                      className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                    />
+                  </div>
+                  {errors.fake_version ? (
+                    <p className="mt-1 text-xs text-error">{errors.fake_version}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="explanation" className="block text-sm font-medium text-[#00ffe0]">
+                    Explanation (optional)
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="explanation"
+                      name="explanation"
+                      value={formData.explanation}
+                      onChange={handleChange}
+                      placeholder="Explain why the fake version is plausible or interesting (optional)"
+                      className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="mr-3"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Saving..." : "Save Story"}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card className="bg-white shadow rounded-lg overflow-hidden">
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="event" className="block text-sm font-medium text-neutral-700">
-                  Event Title
-                </Label>
-                <div className="mt-1">
-                  <Input
-                    id="event"
-                    name="event"
-                    value={formData.event}
-                    onChange={handleChange}
-                    placeholder="Enter the event title"
-                    maxLength={100}
-                    className={errors.event ? "border-error" : ""}
-                  />
-                </div>
-                {errors.event ? (
-                  <p className="mt-1 text-xs text-error">{errors.event}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Maximum 100 characters</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="introduction" className="block text-sm font-medium text-neutral-700">
-                  Introduction
-                </Label>
-                <div className="mt-1">
-                  <Textarea
-                    id="introduction"
-                    name="introduction"
-                    value={formData.introduction}
-                    onChange={handleChange}
-                    placeholder="Please provide context"
-                    maxLength={300}
-                    rows={2}
-                    className={errors.introduction ? "border-error" : ""}
-                  />
-                </div>
-                {errors.introduction ? (
-                  <p className="mt-1 text-xs text-error">{errors.introduction}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Maximum 300 characters</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="true_version" className="block text-sm font-medium text-neutral-700">
-                  True Version
-                </Label>
-                <div className="mt-1">
-                  <Textarea
-                    id="true_version"
-                    name="true_version"
-                    value={formData.true_version}
-                    onChange={handleChange}
-                    placeholder="The actual story"
-                    maxLength={3000}
-                    rows={4}
-                    className={errors.true_version ? "border-error" : ""}
-                  />
-                </div>
-                {errors.true_version ? (
-                  <p className="mt-1 text-xs text-error">{errors.true_version}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="fake_version" className="block text-sm font-medium text-neutral-700">
-                  Fake Version
-                </Label>
-                <div className="mt-1">
-                  <Textarea
-                    id="fake_version"
-                    name="fake_version"
-                    value={formData.fake_version}
-                    onChange={handleChange}
-                    placeholder="The faked story"
-                    maxLength={3000}
-                    rows={4}
-                    className={errors.fake_version ? "border-error" : ""}
-                  />
-                </div>
-                {errors.fake_version ? (
-                  <p className="mt-1 text-xs text-error">{errors.fake_version}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="explanation" className="block text-sm font-medium text-neutral-700">
-                  Explanation
-                </Label>
-                <div className="mt-1">
-                  <Textarea
-                    id="explanation"
-                    name="explanation"
-                    value={formData.explanation}
-                    onChange={handleChange}
-                    placeholder="Explain why the true version is correct"
-                    maxLength={3000}
-                    rows={3}
-                    className={errors.explanation ? "border-error" : ""}
-                  />
-                </div>
-                {errors.explanation ? (
-                  <p className="mt-1 text-xs text-error">{errors.explanation}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-neutral-500">Maximum 3000 characters</p>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBack}
-                  className="mr-3"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Saving..." : "Save Story"}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PageGradientBackground>
   );
 }

@@ -93,51 +93,45 @@ export default function RenameFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="bg-[#1a3c42]">
         <DialogHeader>
-          <DialogTitle>Rename Folder</DialogTitle>
-          <DialogDescription>
-            Change the name of the folder and optionally set or change the password.
+          <DialogTitle className="text-[#00ffe0]">Rename Folder</DialogTitle>
+          <DialogDescription className="text-[#00ffe0]">
+            Change the folder name below.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="folderName">Folder Name</Label>
-              <Input
-                id="folderName"
-                value={folderName}
-                onChange={(e) => setFolderName(e.target.value)}
-                placeholder="e.g., World Wars"
-                minLength={2}
-                maxLength={50}
-              />
-              <p className="text-xs text-neutral-500">Between 2-50 characters</p>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="folderPassword">
-                Password (leave blank for no password)
-              </Label>
-              <Input
-                id="folderPassword"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password or leave blank"
-              />
-              <p className="text-xs text-neutral-500">
-                Set a password to protect this folder
-              </p>
-            </div>
+          <div className="space-y-4">
+            <Label
+              htmlFor="folderName"
+              className="text-[#00ffe0]"
+            >
+              Folder Name
+            </Label>
+            <Input
+              id="folderName"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+            />
+            {showPasswordInput && (
+              <>
+                <Label
+                  htmlFor="password"
+                  className="text-[#00ffe0]"
+                >
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+                />
+              </>
+            )}
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
             </Button>

@@ -14,6 +14,8 @@ import StatCard from "@/components/StatCard";
 import { Search } from "@/components/ui/search";
 import { useFolders } from "@/hooks/useFolders";
 import { apiRequest } from "@/lib/queryClient";
+import { AnimatePresence, motion } from "framer-motion";
+import PageGradientBackground from "@/components/PageGradientBackground";
 
 export default function Game() {
   const [location, setLocation] = useLocation();
@@ -203,145 +205,157 @@ export default function Game() {
   }
   
   return (
-    <div>
-      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-800">Spot the Truth: Can You Tell AI from Human? </h1>
-        
-        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          {/* Folder Selector */}
-          <div className="relative w-full sm:w-48">
-            <FolderDropdown 
-              value={currentFolderId}
-              onChange={handleFolderChange}
-              searchQuery={folderSearch}
-            />
-          </div>
+    <div className="min-h-screen w-full bg-neutral-100">
+      <PageGradientBackground>
+        {/* Main game content (white card, story boxes, controls, etc.) */}
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+          <h1 className="text-2xl font-bold text-neutral-800">Spot the Truth: Can You Tell AI from Human? </h1>
           
-          {/* Search Folders */}
-          <Search 
-            placeholder="Search folders..."
-            value={folderSearch}
-            onChange={handleFolderSearch}
-          />
-        </div>
-      </div>
-
-      {/* Game Controls */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Button onClick={handleNextStory} disabled={!currentStory}>
-          <ArrowRight className="mr-2 h-5 w-5" />
-          New Story
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowUserStats(!showUserStats)}
-          disabled={!userStats}
-        >
-          <Clock className="mr-2 h-5 w-5" />
-          {showUserStats ? "Hide My Stats" : "Show My Stats"}
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowOverallStats(!showOverallStats)}
-          disabled={!storyStats || storyStats.length === 0}
-        >
-          <BarChart3 className="mr-2 h-5 w-5" />
-          {showOverallStats ? "Hide Overall Stats" : "Show Overall Stats"}
-        </Button>
-      </div>
-
-      {currentStory && (
-        <>
-          {/* Story Context */}
-          <Card className="bg-white rounded-lg shadow p-6 mb-6">
-            <CardContent className="p-0">
-              <h2 className="text-xl font-semibold text-neutral-800 mb-2">{currentStory.event}</h2>
-              <p className="text-neutral-600">{currentStory.introduction}</p>
-            </CardContent>
-          </Card>
-
-          {/* Story Versions - adding key to force re-render and re-randomization when story changes */}
-          <StoryCard 
-            key={`story-${currentStory.id}-index-${currentStoryIndex}`}
-            story={currentStory} 
-            onSelect={handleSelectChoice} 
-            isSelectable={selectedChoice === null}
-          />
-
-          {/* Feedback */}
-          {selectedChoice !== null && isCorrect !== null && (
-            <FeedbackMessage 
-              isCorrect={isCorrect} 
-              explanation={currentStory.explanation} 
+          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            {/* Folder Selector */}
+            <div className="relative w-full sm:w-48">
+              <FolderDropdown 
+                value={currentFolderId}
+                onChange={handleFolderChange}
+                searchQuery={folderSearch}
+              />
+            </div>
+            
+            {/* Search Folders */}
+            <Search 
+              placeholder="Search folders..."
+              value={folderSearch}
+              onChange={handleFolderSearch}
             />
-          )}
-        </>
-      )}
-
-      {/* User Stats */}
-      {showUserStats && userStats && (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-neutral-800 mb-3">
-            Your Stats - {folders?.find(f => f.id.toString() === currentFolderId)?.name || "General"} Folder
-          </h3>
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard title="Correct Answers" value={userStats.correct_count} />
-              <StatCard title="Total Attempts" value={userStats.total_attempts} />
-              <StatCard title="Accuracy" value={formatAccuracy(userStats.accuracy)} />
-            </div>
           </div>
         </div>
-      )}
 
-      {/* Overall Stats */}
-      {showOverallStats && storyStats && storyStats.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-neutral-800 mb-3">
-            Overall Stats - {folders?.find(f => f.id.toString() === currentFolderId)?.name || "General"} Folder
-          </h3>
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Story
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Correct
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Attempts
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Accuracy
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {storyStats.map((stat) => (
-                    <tr key={stat.story_id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                        {stat.event}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {stat.correct_count}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {stat.total_attempts}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {formatAccuracy(stat.accuracy)}
-                      </td>
+        {/* Game Controls */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <Button onClick={handleNextStory} disabled={!currentStory}>
+            <ArrowRight className="mr-2 h-5 w-5" />
+            New Story
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowUserStats(!showUserStats)}
+            disabled={!userStats}
+          >
+            <Clock className="mr-2 h-5 w-5" />
+            {showUserStats ? "Hide My Stats" : "Show My Stats"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowOverallStats(!showOverallStats)}
+            disabled={!storyStats || storyStats.length === 0}
+          >
+            <BarChart3 className="mr-2 h-5 w-5" />
+            {showOverallStats ? "Hide Overall Stats" : "Show Overall Stats"}
+          </Button>
+        </div>
+
+        {currentStory && (
+          <>
+            {/* Story Context */}
+            <Card className="bg-[#2d203f] rounded-lg shadow p-6 mb-6">
+              <CardContent className="p-0">
+                <h2 className="text-xl font-semibold text-white mb-2">{currentStory.event}</h2>
+                <p className="text-[#b8a1e3]">{currentStory.introduction}</p>
+              </CardContent>
+            </Card>
+
+            {/* Animated Story Versions */}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={`story-${currentStory.id}-index-${currentStoryIndex}`}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.35, type: "spring", stiffness: 120, damping: 20 }}
+              >
+                <StoryCard
+                  story={currentStory}
+                  onSelect={handleSelectChoice}
+                  isSelectable={selectedChoice === null}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Feedback */}
+            {selectedChoice !== null && isCorrect !== null && (
+              <FeedbackMessage
+                isCorrect={isCorrect}
+                explanation={currentStory.explanation}
+              />
+            )}
+          </>
+        )}
+
+        {/* User Stats */}
+        {showUserStats && userStats && (
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-neutral-800 mb-3">
+              Your Stats - {folders?.find(f => f.id.toString() === currentFolderId)?.name || "General"} Folder
+            </h3>
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard title="Correct Answers" value={userStats.correct_count} />
+                <StatCard title="Total Attempts" value={userStats.total_attempts} />
+                <StatCard title="Accuracy" value={formatAccuracy(userStats.accuracy)} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overall Stats */}
+        {showOverallStats && storyStats && storyStats.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-neutral-800 mb-3">
+              Overall Stats - {folders?.find(f => f.id.toString() === currentFolderId)?.name || "General"} Folder
+            </h3>
+            <div className="bg-transparent shadow rounded-lg p-6">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-200">
+                  <thead className="bg-neutral-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                        Story
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                        Correct
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                        Attempts
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                        Accuracy
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-neutral-200">
+                    {storyStats.map((stat) => (
+                      <tr key={stat.story_id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
+                          {stat.event}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                          {stat.correct_count}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                          {stat.total_attempts}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                          {formatAccuracy(stat.accuracy)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </PageGradientBackground>
     </div>
   );
 }

@@ -15,21 +15,21 @@ export default function FolderCard({ folder, onEdit, onDelete, onViewStories }: 
   const isGeneral = folder.id === 1;
   
   return (
-    <Card className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="bg-[#1a3c42] rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="p-5">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-neutral-800">{folder.name}</h3>
+          <h3 className="text-lg font-medium text-[#00ffe0]">{folder.name}</h3>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-light text-primary">
             {folder.story_count} {folder.story_count === 1 ? 'story' : 'stories'}
           </span>
         </div>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-[#00ffe0]">
           {folder.id === 1 
             ? "Contains all stories from all folders" 
             : "Collection of historical true or false stories"}
         </p>
       </CardContent>
-      <CardFooter className="border-t border-neutral-200 bg-neutral-50 px-5 py-3">
+      <CardFooter className="border-t border-[#00ffe0] bg-[#1a3c42] px-5 py-3">
         <div className="flex justify-between w-full">
           {onViewStories ? (
             <button

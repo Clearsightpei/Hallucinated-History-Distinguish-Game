@@ -77,43 +77,41 @@ export default function CreateFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="bg-[#1a3c42]">
         <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
-          <DialogDescription>
-            Create a new folder to organize your history stories. Optionally set a password to protect it.
+          <DialogTitle className="text-[#00ffe0]">Create Folder</DialogTitle>
+          <DialogDescription className="text-[#00ffe0]">
+            Create a new folder to organize your stories.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="folderName">Folder Name</Label>
-              <Input
-                id="folderName"
-                value={folderName}
-                onChange={e => setFolderName(e.target.value)}
-                placeholder="e.g., World Wars"
-                minLength={2}
-                maxLength={50}
-              />
-              <p className="text-xs text-neutral-500">Between 2-50 characters</p>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="folderPassword">Password (optional)</Label>
-              <Input
-                id="folderPassword"
-                type="password"
-                value={folderPassword}
-                onChange={e => setFolderPassword(e.target.value)}
-                placeholder="Set a password (optional)"
-              />
-              <p className="text-xs text-neutral-500">Leave blank for no password</p>
-            </div>
+          <div className="space-y-4">
+            <Label
+              htmlFor="folderName"
+              className="text-[#00ffe0]"
+            >
+              Folder Name
+            </Label>
+            <Input
+              id="folderName"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+            />
+            <Label
+              htmlFor="folderPassword"
+              className="text-[#00ffe0]"
+            >
+              Password (optional)
+            </Label>
+            <Input
+              id="folderPassword"
+              value={folderPassword}
+              onChange={(e) => setFolderPassword(e.target.value)}
+              className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
+            />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Save"}
             </Button>
