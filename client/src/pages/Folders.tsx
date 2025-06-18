@@ -202,7 +202,7 @@ export default function Folders() {
     <PageGradientBackground>
       <div>
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ color: '#00ffe0' }}>Manage Folders</h1>
+          <h1 className="text-2xl font-bold text-neutral-800">Manage Folders</h1>
           
           <div className="mt-4 sm:mt-0 flex items-center">
             <Search 

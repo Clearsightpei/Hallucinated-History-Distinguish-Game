@@ -313,7 +313,7 @@ export default function Game() {
             <h3 className="text-lg font-medium text-neutral-800 mb-3">
               Overall Stats - {folders?.find(f => f.id.toString() === currentFolderId)?.name || "General"} Folder
             </h3>
-            <div className="bg-transparent shadow rounded-lg p-6">
+            <div className="bg-white shadow rounded-lg p-6">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-neutral-200">
                   <thead className="bg-neutral-50">
@@ -335,16 +335,16 @@ export default function Game() {
                   <tbody className="bg-white divide-y divide-neutral-200">
                     {storyStats.map((stat) => (
                       <tr key={stat.story_id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                           {stat.event}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                           {stat.correct_count}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                           {stat.total_attempts}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                           {formatAccuracy(stat.accuracy)}
                         </td>
                       </tr>
