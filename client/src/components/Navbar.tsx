@@ -13,7 +13,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <CheckCircle className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-semibold text-neutral-800">Find the Truth</span>
+              <span className="ml-2 text-xl font-semibold text-neutral-800">Past or Prompt</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">

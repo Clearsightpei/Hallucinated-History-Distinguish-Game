@@ -30,8 +30,8 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
   };
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <Card className="bg-white rounded-lg shadow overflow-hidden border-2 border-neutral-200 hover:border-primary transition-colors">
+    <div className="flex flex-col items-center gap-6 mb-8">
+      <Card className="bg-white rounded-lg shadow overflow-hidden border-3 border-neutral-200 hover:border-primary transition-colors w-[150%] max-w-5xl">
         <CardContent className="p-6">
           <h3 className="font-semibold text-lg mb-3">Version A</h3>
           <p className="text-neutral-700">{firstVersion}</p>
@@ -49,7 +49,7 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
         )}
       </Card>
 
-      <Card className="bg-white rounded-lg shadow overflow-hidden border-2 border-neutral-200 hover:border-primary transition-colors">
+      <Card className="bg-white rounded-lg shadow overflow-hidden border-3 border-neutral-200 hover:border-primary transition-colors w-[150%] max-w-5xl">
         <CardContent className="p-6">
           <h3 className="font-semibold text-lg mb-3">Version B</h3>
           <p className="text-neutral-700">{secondVersion}</p>
