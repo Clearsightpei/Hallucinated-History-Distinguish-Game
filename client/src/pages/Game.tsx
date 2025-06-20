@@ -299,9 +299,9 @@ export default function Game() {
             </h3>
             <div className="bg-white shadow rounded-lg p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard title="Correct Answers" value={userStats.correct_count} />
-                <StatCard title="Total Attempts" value={userStats.total_attempts} />
-                <StatCard title="Accuracy" value={formatAccuracy(userStats.accuracy)} />
+                <StatCard title="Correct Answers" value={userStats.correct_count} titleClassName="text-black" valueClassName="text-black" />
+                <StatCard title="Total Attempts" value={userStats.total_attempts} titleClassName="text-black" valueClassName="text-black" />
+                <StatCard title="Accuracy" value={formatAccuracy(userStats.accuracy)} titleClassName="text-black" valueClassName="text-black" />
               </div>
             </div>
           </div>
@@ -318,16 +318,16 @@ export default function Game() {
                 <table className="min-w-full divide-y divide-neutral-200">
                   <thead className="bg-neutral-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium !text-black uppercase tracking-wider">
                         Story
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium !text-black uppercase tracking-wider">
                         Correct
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium !text-black uppercase tracking-wider">
                         Attempts
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium !text-black uppercase tracking-wider">
                         Accuracy
                       </th>
                     </tr>
@@ -335,16 +335,16 @@ export default function Game() {
                   <tbody className="bg-white divide-y divide-neutral-200">
                     {storyStats.map((stat) => (
                       <tr key={stat.story_id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium !text-black">
                           {stat.event}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm !text-black">
                           {stat.correct_count}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm !text-black">
                           {stat.total_attempts}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm !text-black">
                           {formatAccuracy(stat.accuracy)}
                         </td>
                       </tr>
