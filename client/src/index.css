@@ -4,12 +4,21 @@
 
 @layer base {
   * {
-    color: #00ffe0 !important;
+    color: #00f7fb !important;
   }
 
   body {
-    color: #00ffe0 !important;
+    color: #00f7fb !important;
     background: linear-gradient(135deg, #1e1f4b 0%, #44355b 60%, #ffd700 100%);
     background-attachment: fixed;
+  }
+
+  .thought-bubble {
+    position: relative;
+    background: #ff9502 !important;
+    color: #000 !important;
+  }
+  .thought-bubble::after {
+    content: none;
   }
 }

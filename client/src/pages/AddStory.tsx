@@ -26,7 +26,8 @@ export default function AddStory() {
     introduction: "",
     true_version: "",
     fake_version: "",
-    explanation: ""
+    explanation: "",
+    hint: ""
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   
@@ -60,16 +61,10 @@ export default function AddStory() {
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
+    // Enforce 500 char limit for hint
+    if (name === "hint" && value.length > 500) return;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
   
   // Handle form submission
@@ -111,6 +106,19 @@ export default function AddStory() {
   // Navigate back to folder
   const handleBack = () => {
     navigate(`/folders/${folderId}`);
+  };
+  
+  // Validate form before submit
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (formData.event.trim() === "") newErrors.event = "Event is required";
+    if (formData.introduction.trim() === "") newErrors.introduction = "Introduction is required";
+    if (formData.true_version.trim() === "") newErrors.true_version = "True version is required";
+    if (formData.fake_version.trim() === "") newErrors.fake_version = "Fake version is required";
+    if (formData.explanation.trim() === "") newErrors.explanation = "Explanation is required";
+    if (formData.hint && formData.hint.length > 500) newErrors.hint = "Hint must be 500 characters or less";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
   
   if (isNaN(folderId)) {
@@ -235,6 +243,24 @@ export default function AddStory() {
                       className="bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0]"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="hint" className="block text-sm font-medium text-[#00ffe0]">
+                    Hint (optional, max 500 characters)
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="hint"
+                      name="hint"
+                      value={formData.hint}
+                      onChange={handleChange}
+                      maxLength={500}
+                      placeholder="A short clue or explanation (optional)"
+                      className={`bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0] ${errors.hint ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {errors.hint && <div className="text-red-500 text-sm">{errors.hint}</div>}
                 </div>
 
                 <div className="flex justify-end">

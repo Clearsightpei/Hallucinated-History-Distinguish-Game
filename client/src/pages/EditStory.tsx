@@ -27,7 +27,8 @@ export default function EditStory() {
     introduction: "",
     true_version: "",
     fake_version: "",
-    explanation: ""
+    explanation: "",
+    hint: ""
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   
@@ -49,7 +50,8 @@ export default function EditStory() {
         introduction: story.introduction,
         true_version: story.true_version,
         fake_version: story.fake_version,
-        explanation: story.explanation
+        explanation: story.explanation,
+        hint: story.hint || ""
       });
     }
   }, [story]);
@@ -84,6 +86,8 @@ export default function EditStory() {
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    // Enforce 500 char limit for hint
+    if (name === "hint" && value.length > 500) return;
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error for this field
@@ -100,7 +104,6 @@ export default function EditStory() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     try {
       // Validate form data
       const validatedData = insertStorySchema.parse({
@@ -291,6 +294,29 @@ export default function EditStory() {
                     <p className="mt-1 text-xs text-error">{errors.explanation}</p>
                   ) : (
                     <p className="mt-1 text-xs text-[#00ffe0]">Maximum 3000 characters</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="hint" className="block text-sm font-medium text-[#00ffe0]">
+                    Hint (optional, max 500 characters)
+                  </Label>
+                  <div className="mt-1">
+                    <Textarea
+                      id="hint"
+                      name="hint"
+                      value={formData.hint}
+                      onChange={handleChange}
+                      placeholder="A short clue or explanation (optional)"
+                      maxLength={500}
+                      rows={2}
+                      className={`bg-[#1a3c42] text-[#00ffe0] border-[#00ffe0] ${errors.hint ? 'border-error' : ''}`}
+                    />
+                  </div>
+                  {errors.hint ? (
+                    <p className="mt-1 text-xs text-error">{errors.hint}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-[#00ffe0]">Maximum 500 characters</p>
                   )}
                 </div>
 

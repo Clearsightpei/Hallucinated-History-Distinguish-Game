@@ -23,6 +23,7 @@ export default function Game() {
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const { toast } = useToast();
+  const [showHint, setShowHint] = useState(false);
   
   // Initialize session ID
   useEffect(() => {
@@ -252,15 +253,33 @@ export default function Game() {
             <BarChart3 className="mr-2 h-5 w-5" />
             {showOverallStats ? "Hide Overall Stats" : "Show Overall Stats"}
           </Button>
+          {currentStory?.hint ? (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowHint((v) => !v)}
+              className="ml-2"
+            >
+              💡 Show Hint
+            </Button>
+          ) : null}
         </div>
 
         {currentStory && (
           <>
+            {/* Show hint bubble if toggled */}
+            {showHint && currentStory.hint && (
+              <div className="relative flex justify-end mb-4">
+                <div className="!bg-[#fff702] !text-[#450063] rounded-2xl shadow-lg px-5 py-3 max-w-md text-base font-medium relative thought-bubble">
+                  {currentStory.hint}
+                  <span className="absolute right-6 -bottom-4 w-0 h-0 border-t-8 border-t-[#fff702] border-x-8 border-x-transparent"></span>
+                </div>
+              </div>
+            )}
             {/* Story Context */}
             <Card className="bg-[#2d203f] rounded-lg shadow p-6 mb-6">
               <CardContent className="p-0">
                 <h2 className="text-xl font-semibold text-white mb-2">{currentStory.event}</h2>
-                <p className="text-[#b8a1e3]">{currentStory.introduction}</p>
+                <p className="!text-[#ded700]">{currentStory.introduction}</p>
               </CardContent>
             </Card>
 

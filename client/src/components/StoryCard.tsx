@@ -34,14 +34,14 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
   const baseCard =
     "rounded-2xl w-[150%] max-w-4xl text-[#00ffe0] transition-all duration-300 hover:scale-105 hover:shadow-xl";
   const neonA =
-    "bg-[#d6b85a] border-4 border-[#ffd700] shadow-[0_0_16px_2px_#ffd70055] hover:shadow-[0_0_32px_6px_#ffd70099]";
+    "bg-[#110263] border-4 border-[#00eeff] shadow-[0_0_16px_2px_#00eeff55] hover:shadow-[0_0_32px_6px_#00eeff99]";
   const neonB =
-    "bg-[#2e2633] border-4 border-[#9e4f8e] shadow-[0_0_16px_2px_#9e4f8e55] hover:shadow-[0_0_32px_6px_#9e4f8e99]";
+    "bg-[#370049] border-4 border-[#9e4f8e] shadow-[0_0_16px_2px_#9e4f8e55] hover:shadow-[0_0_32px_6px_#9e4f8e99]";
 
   return (
     <div className="flex flex-col items-center gap-6 mb-8">
       <motion.div
-        whileHover={{ scale: 1.05, boxShadow: "0 0 32px 6px #4f5b9e" }}
+        whileHover={{ scale: 1.05, boxShadow: "0 0 32px 6px #00eeff" }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className={`${baseCard} ${neonA}`}
       >
@@ -50,7 +50,7 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
           <p>{firstVersion}</p>
         </CardContent>
         {isSelectable && (
-          <div className="px-6 py-4 border-t border-[#ffd700]">
+          <div className="px-6 py-4 bg-[#110263] border-t border-[#00eeff]">
             <Button 
               className="w-full text-[#ffd700] border-none bg-transparent hover:bg-[#ffd700]/10"
               onClick={handleSelectFirst}
@@ -72,7 +72,7 @@ export default function StoryCard({ story, onSelect, isSelectable = true }: Stor
           <p>{secondVersion}</p>
         </CardContent>
         {isSelectable && (
-          <div className="px-6 py-4 bg-[#2e2633] border-t border-[#9e4f8e]">
+          <div className="px-6 py-4 bg-[#370049] border-t border-[#9e4f8e]">
             <Button 
               className="w-full text-[#9e4f8e] border-none bg-transparent hover:bg-[#9e4f8e]/10"
               onClick={handleSelectSecond}

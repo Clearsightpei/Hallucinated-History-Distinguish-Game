@@ -24,6 +24,7 @@ export const stories = pgTable("stories", {
   true_version: text("true_version").notNull(),
   fake_version: text("fake_version").notNull(),
   explanation: text("explanation").notNull(),
+  hint: text("hint", { length: 500 }), // nullable, optional
 });
 
 export const insertStorySchema = createInsertSchema(stories).pick({
@@ -33,12 +34,14 @@ export const insertStorySchema = createInsertSchema(stories).pick({
   true_version: true,
   fake_version: true,
   explanation: true,
+  hint: true,
 }).extend({
   event: z.string().max(3000),
   introduction: z.string().max(3000),
   true_version: z.string().max(3000),
   fake_version: z.string().max(3000),
   explanation: z.string().max(3000),
+  hint: z.string().max(500).optional().nullable(),
 });
 
 // User attempts table
